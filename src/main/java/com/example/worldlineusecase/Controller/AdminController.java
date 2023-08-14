@@ -11,8 +11,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
+import java.io.ObjectInputFilter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 @RestController
@@ -25,31 +27,34 @@ public class AdminController {
     private EmployeeService employeeService;
     @Autowired
     private EmployeeRepo employeeRepo;
-@PostMapping("/addModule/{role}")
-    public void addTrainingModule(@RequestBody TrainingModule trainingModule,@PathVariable String role) {
-    if(role.equals("admin")) {
+@PostMapping("/addTrainingModule")
+    public void addTrainingModule(@RequestBody TrainingModule trainingModule,@RequestParam String role) {
+    if(role.equals("Admin")) {
         System.out.println(trainingModule.getDescription());
         System.out.println(trainingModule.getList_of_topics());
         trainingModuleService.addTrainingmodule(trainingModule);
     }
-    else{
-        return;
-    }
 }
 @DeleteMapping("/deleteModule/{id}")
-    public void deleteTrainingModule(@PathVariable Long id)
+    public void deleteTrainingModule(@PathVariable Long id,@RequestParam String role)
 {
-    trainingModuleService.deleteModule(id);
+    if(role.equals("Admin")) {
+        trainingModuleService.deleteModule(id);
+    }
 }
 @PutMapping("/updateModule")
-    public void updateTrainingModule(@RequestBody TrainingModule trainingModule)
-{
-    trainingModuleService.updateModule(trainingModule);
+    public void updateTrainingModule(@RequestBody TrainingModule trainingModule,@RequestParam String role) {
+    if (role.equals("Admin")) {
+        trainingModuleService.updateModule(trainingModule);
+    }
 }
-@GetMapping("/searchByName")
-    public List<TrainingModule> searchTrainingModuleByName(@RequestParam String name)
+@GetMapping("/searchByName/{name}/")
+    public List<TrainingModule> searchTrainingModuleByName(@RequestParam String role,@PathVariable String name)
 {
-   return trainingModuleService.searchTrainingModuleByName(name);
+    if(role.equals("Admin")) {
+        return trainingModuleService.searchTrainingModuleByName(name);
+    }
+    return null;
 }
 @GetMapping("/searchByTopic")
 public List<TrainingModule> searchTrainingModuleByTopic(@RequestParam String topic)
@@ -57,43 +62,62 @@ public List<TrainingModule> searchTrainingModuleByTopic(@RequestParam String top
     return trainingModuleService.searchTrainingModuleByTopic(topic);
 }
 @GetMapping("/getAllEmployeesDetails")
-public List<Employee> getAllEmployees(){
-
+public List<Employee> getAllEmployees(@RequestParam String role){
+    if(role.equals("Admin")){
     return employeeRepo.findAll();
+    }
+    return null;
 }
 @PostMapping("/addEmployee")
-public void addEmployee(@RequestBody Employee employee)
+public void addEmployee(@RequestBody Employee employee,@RequestParam String role)
 {
-    if(employee.getCanEdit()) {
+    if(role.equals("Admin")){
         employeeService.addEmployee(employee);
     }
+
 }
 @GetMapping("/getModules")
-    public List<TrainingModule> getTrainingModules()
+    public List<TrainingModule> getTrainingModules(@RequestParam String role)
 {
-    return trainingModuleRepo.findAll();
+    if(role.equals("Admin"))
+    {
+        return trainingModuleRepo.findAll();
+    }
+   return null;
 }
 @GetMapping("/getModule/{name}")
-    public List<TrainingModule> getTrainingModule(@PathVariable String name)
+    public List<TrainingModule> getTrainingModule(@PathVariable String name,@RequestParam String role)
 {
-
-    return trainingModuleRepo.findByName(name);
+    if(role.equals("Admin"))
+    {
+        return trainingModuleRepo.findByName(name);
+    }
+    return  null;
 }
 @GetMapping("/getEmployeeById/{id}")
-    public List<Employee>getEmployeeById(@PathVariable Long id)
+    public List<Employee>getEmployeeById(@PathVariable Long id,@RequestParam String role)
 {
+    if(role.equals("Admin")){
         return employeeService.getEmployeeById(id);
+    }
+    return null;
     }
 
 @GetMapping("/getEmployees/{ModuleName}")
-    public List<Employee> getEmployeeByModule(@PathVariable String ModuleName)
+    public List<Employee> getEmployeeByModule(@PathVariable String ModuleName,@RequestParam String role)
 {
-    return employeeService.getEmployeeByModule(ModuleName);
+    if(role.equals("Admin")) {
+        return employeeService.getEmployeeByModule(ModuleName);
+    }
+    return null;
 }
-@PostMapping("/addModule")
-public int addModuleToEmployee(@RequestBody Employee employee)
+@PostMapping("/addModuleToEmployee")
+public int addModuleToEmployee(@RequestBody Employee employee,@RequestParam String role)
 {
-    return employeeService.addModuleToEmployee(employee);
+    if(role.equals("Admin")) {
+        return employeeService.addModuleToEmployee(employee);
+    }
+    return -1;
 }
 @PostMapping("/progressUpdate")
     public int progressUpdate(@RequestBody Employee employee)
@@ -103,8 +127,8 @@ public int addModuleToEmployee(@RequestBody Employee employee)
 }
 
     @GetMapping("/pdf/employees/{ModuleName}")
-    public void generatePdf(HttpServletResponse response ,@PathVariable String ModuleName) throws DocumentException, IOException {
-
+    public void generatePdf(HttpServletResponse response ,@PathVariable String ModuleName,@RequestParam String role) throws DocumentException, IOException {
+    if(role.equals("Admin")) {
         response.setContentType("application/pdf");
         DateFormat dateFormat = new SimpleDateFormat("YYYY-MM-DD:HH:MM:SS");
         String currentDateTime = dateFormat.format(new Date());
@@ -116,8 +140,8 @@ public int addModuleToEmployee(@RequestBody Employee employee)
 
         PdfGenerator generator = new PdfGenerator();
 
-        generator.generate(response,employeelist);
-
+        generator.generate(response, employeelist);
+    }
     }
 }
 

@@ -23,5 +23,5 @@ public class TrainingModule {
     private String name;
     private String description;
     private List<String> list_of_topics;
-    
+
 }
